@@ -26,36 +26,74 @@ module Grid =
     let pencil (c,r) v = {Column=c;Row=r;Value=PencilMark(v)}
 module GridGrid = 
     type GridCell = {Column:int; Row:int;Cells:Grid.CellModel list}
-    let gridSect (c,r) cells =
+    let private gridSect (c,r) cells =
         {Column=c;Row=r;Cells=cells}
+    
+    let getGlobalCoord (sect:GridCell) (cell:Grid.CellModel) =
+        (sect.Column * 3 + cell.Column, sect.Row * 3 + cell.Row)
+
+    let getLocalCoord (x,y) =
+        let sectX,sectY = (x / 3, y / 3)
+        let lx,ly = (x - sectX * 3, y - sectY * 3)
+        (sectX,sectY, lx , ly)
+
+    let private baseGrid =
+        [for c in 0..2 do 
+         for r in 0..2 -> gridSect (c,r) []]
+
+    let private addMark (x,y,v) grid =
+        let sectX,sectY,lx,ly = getLocalCoord (x,y)
+        [
+            for sect in grid do
+            if sect.Column = sectX && sect.Row = sectY then
+                yield {sect with Cells = sect.Cells |> List.append [(Grid.mark (lx,ly) v)]}
+            else yield sect
+        ]
+
+    let rec private createMarks grid list =
+        match list with
+        | head :: tail ->
+            let result = grid |> addMark head
+            createMarks result tail
+        | [] -> grid
+
+    let create list =
+        createMarks baseGrid list
+    
+
 module SampleGrid = 
     open Grid
     open GridGrid
-    let samGrid = [
-        gridSect (0,0) [
-            mark (0,2) 5
-            mark (2,0) 1
-            ]
-        gridSect (1,0) [
-            mark (0,0) 2
-            mark (0,1) 6
-            mark (2,0) 3
-            mark (2,1) 7
-        ]
-        gridSect (2,0) [
-            mark (0,0) 4
-            mark (2,2) 3
-            pencil (1,1) [1;2;3]
-        ]
-        gridSect (0,1) []
-        gridSect (1,1) []
-        gridSect (2,1) []
-        gridSect (0,2) []
-        gridSect (1,2) []
-        gridSect (2,2) []
+
+    let samGrid = create [
+        (0,2,5)
+        (2,0,1)
         
     ]
-
+    // let samGrid = [
+    //     gridSect (0,0) [
+    //         mark (0,2) 5
+    //         mark (2,0) 1
+    //         ]
+    //     gridSect (1,0) [
+    //         mark (0,0) 2
+    //         mark (0,1) 6
+    //         mark (2,0) 3
+    //         mark (2,1) 7
+    //     ]
+    //     gridSect (2,0) [
+    //         mark (0,0) 4
+    //         mark (2,2) 3
+    //         pencil (1,1) [1;2;3]
+    //     ]
+    //     gridSect (0,1) []
+    //     gridSect (1,1) []
+    //     gridSect (2,1) []
+    //     gridSect (0,2) []
+    //     gridSect (1,2) []
+    //     gridSect (2,2) []
+        
+    // ]
 
                         
 module Canvas =
@@ -122,6 +160,7 @@ module Renderer =
         Width:float
         Height:float
         Padding:float
+        Debug:bool
     }
 
     let drawBackground options =
@@ -141,10 +180,23 @@ module Renderer =
             drawLines x 10. (rgb 100 0 0)
 
 
-    let drawCell (cell:CellModel) ((x,y):float * float) (options:RenderOptions) :unit =
+    let drawCell (cell:CellModel) ((x,y):float * float) (options:RenderOptions) sect :unit =
         let cX = float(cell.Column) * options.CellSize + x
         let cY = float(cell.Row) * options.CellSize + y
         let middle = (cX+options.CellSize/2.,cY+options.CellSize/2.)
+
+        let top = (cX+options.CellSize/2.,cY + 20.)
+        let bottom = (cX + options.CellSize/2., cY+options.CellSize - 20.)
+        if options.Debug then
+            let gX,gY = getGlobalCoord sect cell 
+            text 10 bottom (rgb 0 0 0) (sprintf "global: (%i,%i)" gX gY)
+            
+            //text 10 top (rgb 0 0 0) (sprintf "local: (%i,%i)" cell.Column cell.Row)
+
+            let lSX,lSY,lx,ly = getLocalCoord (gX, gY)
+
+            text 10 top (rgb 0 0 0) (sprintf "local (calc): (%i,%i) (%i %i)" lSX lSY lx ly)
+
         match cell.Value with
         | Mark v -> v.ToString() |> text  45 middle (rgb 0 0 0)
         | PencilMark values -> 
@@ -158,10 +210,12 @@ module Renderer =
         let x = float(sect.Column) * sectSize
         let y = float(sect.Row) * sectSize
 
+        if options.Debug then
+            text 10 (x+30.,y+10.) (rgb 255 0 0) (sprintf "sect: (%i,%i)" sect.Column sect.Row)
         //(x,y,x+sectSize,y+sectSize) |> filled (rgb x y 0)
 
         for cell in sect.Cells do
-            drawCell cell (float(sect.Column) * sectSize, float(sect.Row) * sectSize) options
+            drawCell cell (float(sect.Column) * sectSize, float(sect.Row) * sectSize) options sect
 
     let render grid options =
         drawBackground options
@@ -174,7 +228,7 @@ open Renderer
 
 let w,h = getWindowDimensions()
 
-let options = {CellSize=w/9.; Width=w; Height=h;Padding=10.}
+let options = {CellSize=w/9.; Width=w; Height=h;Padding=10.;Debug=true}
 
 let rec update () =
     render SampleGrid.samGrid options
