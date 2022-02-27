@@ -35,7 +35,7 @@ let getOptions() =
         strokeRatio=0.005}
     options
 
-let mutable grid = SampleGrid.samGrid
+let mutable grid = SampleGrid.uniqueCandidate
                 |> Solver.pencil
 
 //let solved = Solver.pencil grid
@@ -47,14 +47,17 @@ let rec update () =
     render grid options
     //window.setTimeout(update, 1000/60) |> ignore
 
-let btn = document.getElementById("btn-solve") :?> HTMLButtonElement
-
+let btnSolve = document.getElementById("btn-solve") :?> HTMLButtonElement
+let btnGuess = document.getElementById("btn-guess") :?> HTMLButtonElement
 let solve() =
     grid <- grid 
         |> Solver.convertPencilToMarks
         |> Solver.pencil
     update()
 
-btn.addEventListener("click", (fun e -> solve()))
+btnGuess.addEventListener("click", (fun e -> 
+    grid <- grid |> Solver.convertPencilToMarks |> Solver.pencil |> Solver.guess |> Solver.pencil
+    update() ))
+btnSolve.addEventListener("click", (fun e -> solve()))
 window.addEventListener("resize", (fun e -> update()))
 update()

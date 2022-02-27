@@ -1,6 +1,7 @@
 module Solver
 open GridGrid
 open Grid
+open Browser.Dom
 
 let private checkFor = [1..9]
 
@@ -30,32 +31,26 @@ let private getSquare sect =
         | Mark v -> yield v
         | _ -> ()]
 
+let updateCells filter action grid = 
+    [for sect in grid do
+        yield {sect with Cells = [for cell in sect.Cells do
+                                    if filter grid sect cell then 
+                                        yield action grid sect cell
+                                    else yield cell]}]
+
 let private pencilCell grid sect cell =
     let unavailable = getColumn grid sect cell
                     |> List.append (getRow grid sect cell)
                     |> List.append (getSquare sect)
     let result = checkFor |> List.filter (fun i -> unavailable |> List.contains i |> not)
-    PencilMark result
-
-let private pencilCells grid sect =
-     [for cell in sect.Cells do
-        match cell.Value with
-        | Empty ->
-            {cell with Value = pencilCell grid sect cell}
-        | _ -> cell]
+    {cell with Value = PencilMark result}
 
 let pencil grid =
-    [for sect in grid do
-        yield {sect with Cells = pencilCells grid sect}]
-    
+    grid |> updateCells (fun g s c -> match c.Value with | Empty -> true | PencilMark _ -> true | _ -> false) pencilCell
+ 
 let convertPencilToMarks grid =
-    [for sect in grid -> 
-        {sect with Cells=[
-                    for cell in sect.Cells do
-                    match cell.Value with
-                    | PencilMark v when v.Length = 1 -> yield {cell with Value = Mark(v.Head)}
-                    | _ -> yield cell
-            ]}]
+    grid |> updateCells (fun g s c -> true) (fun g s c -> match c.Value with | PencilMark v when v.Length = 1 -> {c with Value = Mark(v.Head)} | _ -> c)
+   
 
 let private bestSection grid =
     let section = [for sect in grid -> 
@@ -76,3 +71,22 @@ let private bestSection grid =
     let s,_ = section |> List.fold folder state
     s
 
+let private bestCell sect =
+    let cells = [for cell in sect.Cells -> cell, match cell.Value with | PencilMark v -> v.Length | _ -> 0]
+
+    let folder acc c =
+        let _,a = acc
+        let _,ca = c
+        if ca > a then c else acc
+    
+    let c,_ = cells |> List.fold folder (cells.Head)
+    c
+
+let updateCell sect cell grid =
+    grid |> updateCells (fun g s c -> getGlobalCoord sect cell = getGlobalCoord s c) (fun g s c -> cell)
+
+let guess grid = 
+    let sect = bestSection grid
+    let cell = bestCell sect
+    grid 
+    |> updateCell sect {cell with Value = match cell.Value with | PencilMark v -> Mark(v.Head) | _ -> cell.Value }

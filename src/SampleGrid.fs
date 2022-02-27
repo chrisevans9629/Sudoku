@@ -28,4 +28,10 @@ let samGrid = create [
     (8,6,8)
     (6,8,5)
 ]
-    
+
+let uniqueCandidate = create [
+    (2,0,4)
+    (1,4,4)
+    (0,6,5)
+    (5,8,4)
+]
