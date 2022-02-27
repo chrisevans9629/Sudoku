@@ -32,6 +32,7 @@ let line lineWidth (color: string) from lTo =
     ctx.moveTo from
     ctx.lineTo lTo
     ctx.stroke()
+    ctx.closePath()
 
 let text size (x,y) (color: string) txt =
     let ctx = context

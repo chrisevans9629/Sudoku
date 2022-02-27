@@ -22,12 +22,25 @@ let options = {
     text=text
     line=line}
 
-let grid = SampleGrid.samGrid
+let mutable grid = SampleGrid.samGrid
+                |> Solver.pencil
 
-let solved = Solver.pencil grid
+//let solved = Solver.pencil grid
+
+//let solved2 = Solver.convertPencilToMarks solved
 
 let rec update () =
-    render solved options
+    render grid options
     //window.setTimeout(update, 1000/60) |> ignore
+
+let btn = document.getElementById("btn-solve") :?> HTMLButtonElement
+
+let solve() =
+    grid <- grid 
+        |> Solver.convertPencilToMarks
+        |> Solver.pencil
+    update()
+
+btn.addEventListener("click", (fun e -> solve()))
 
 update()
