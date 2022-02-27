@@ -1,3 +1,11 @@
+# Sudoku Solver
+Techniques used
+https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
+
+- Sole Candidate
+- Unique Candiate
+- 
+
 # Fable Minimal App
 
 This is a small Fable app project so you can easily get started and add your own code progressively. For more comprehensive templates [check this page](https://fable.io/docs/2-steps/your-first-fable-project.html).
