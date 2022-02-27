@@ -10,17 +10,30 @@ open Browser
 open Renderer
 open Canvas
 
-let w,h = getWindowDimensions()
 
-let options = {
-    CellSize=w/9.
-    Width=w
-    Height=h
-    Padding=10.
-    Debug=false
-    filled=filled
-    text=text
-    line=line}
+let getOptions() =
+    let w,h = window.innerWidth,window.innerHeight
+
+    let size = [w;h] |> List.min
+
+    let padding = size / 10.
+
+    let actSize = size - padding
+
+    setWindowSize (actSize, actSize)
+
+    let options = {
+        CellSize=actSize / 9.
+        Width=actSize
+        Height=actSize
+        Debug=false
+        filled=filled
+        text=text
+        line=line
+        clear=clear
+        fontRatio=0.05
+        strokeRatio=0.005}
+    options
 
 let mutable grid = SampleGrid.samGrid
                 |> Solver.pencil
@@ -30,6 +43,7 @@ let mutable grid = SampleGrid.samGrid
 //let solved2 = Solver.convertPencilToMarks solved
 
 let rec update () =
+    let options = getOptions()
     render grid options
     //window.setTimeout(update, 1000/60) |> ignore
 
@@ -42,5 +56,5 @@ let solve() =
     update()
 
 btn.addEventListener("click", (fun e -> solve()))
-
+window.addEventListener("resize", (fun e -> update()))
 update()

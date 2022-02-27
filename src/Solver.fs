@@ -56,3 +56,23 @@ let convertPencilToMarks grid =
                     | PencilMark v when v.Length = 1 -> yield {cell with Value = Mark(v.Head)}
                     | _ -> yield cell
             ]}]
+
+let private bestSection grid =
+    let section = [for sect in grid -> 
+                    (sect, sect.Cells 
+                            |> List.map (fun r -> match r.Value with | PencilMark v -> Some v.Length | _ -> None)
+                            |> List.choose id
+                            |> List.sum)]
+
+    let state = section.Head
+
+    let folder accumulator current =
+        let _,score = accumulator
+        let _,cscore = current
+        if cscore > score then
+            current
+        else accumulator
+
+    let s,_ = section |> List.fold folder state
+    s
+

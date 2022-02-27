@@ -12,6 +12,10 @@ let context = canvas.getContext_2d()
 // Format RGB color as "rgb(r,g,b)"
 let ($) s n = s + n.ToString()
 
+let clear() =
+    context.clearRect(0.,0., canvas.width, canvas.height)
+    canvas.width <- canvas.width
+
 /// Fill rectangle with given color
 let filled (color: string) rect =
     let ctx = context
@@ -71,7 +75,13 @@ let getWindowDimensions () =
     // canvas.height <- dim
     // console.log dim
     // dim,dim
+    
+
     canvas.width,canvas.height
+
+let setWindowSize (w,h) =
+    context.canvas.width <- w
+    context.canvas.height <- h
 
 /// Get the first <img /> element and set `src` (do
 /// nothing if it is the right one to keep animation)
