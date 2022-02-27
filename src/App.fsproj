@@ -4,6 +4,12 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Grid.fs" />
+    <Compile Include="GridSect.fs" />
+    <Compile Include="SampleGrid.fs" />
+    <Compile Include="Renderer.fs" />
+    <Compile Include="Canvas.fs" />
+    <Compile Include="Solver.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>
