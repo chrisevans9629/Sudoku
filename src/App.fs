@@ -43,8 +43,7 @@ let getOptions() =
         stroke=stroke}
     options
 
-let grid = SampleGrid.uniqueCandidate
-                |> Solver.pencil
+let _,grid = SampleGrid.sampleGrids.[0]
 
 
 let options = getOptions()
@@ -60,24 +59,27 @@ let options = getOptions()
 
 let btnSolve = document.getElementById("btn-solve") :?> HTMLButtonElement
 let btnGuess = document.getElementById("btn-guess") :?> HTMLButtonElement
+let selectGames = document.getElementById("select-games") :?> HTMLSelectElement
 
-let solve grid =
-    grid 
-        |> Solver.convertPencilToMarks
-        |> Solver.pencil
+for name,_ in SampleGrid.sampleGrids do
+    let option = document.createElement("option") :?> HTMLOptionElement
+    option.value <- name
+    option.innerHTML <- name
+    selectGames.appendChild option |> ignore
+
 
 open Solver
 open GridGrid
 open Grid
 let rec update grid options =
-    render grid options
+    render (grid |> Solver.pencil) options
 
     btnGuess.onclick <- (fun e -> 
-        let result = grid |> Solver.convertPencilToMarks |> Solver.pencil |> Solver.guess |> Solver.pencil
+        let result = grid |> Solver.convertPencilToMarks |> Solver.pencil |> Solver.guess
         update result options)
 
     btnSolve.onclick <- (fun e -> 
-        let result = solve grid
+        let result = grid |> Solver.convertPencilToMarks
         update result options)
     
     window.onresize <- (fun e -> 
@@ -95,12 +97,16 @@ let rec update grid options =
 
         match options.SelectedCell, key with
         | Some xy, k when checkFor |> List.map (fun r -> r |> string) |> List.contains k -> 
-            let result = grid |> updateCells (fun _ s c -> xy = getGlobalCoord s c) (fun _ _ c -> {c with Value = Mark(k |> int)}) |> Solver.pencil
+            let result = grid |> updateCells (fun _ s c -> xy = getGlobalCoord s c && match c.Value with | PermaMark _ -> false | _ -> true) (fun _ _ c -> {c with Value = Mark(k |> int)})
             update result options
         | Some xy, k when k = "Delete" ->
-            let result = grid |> updateCells (fun _ s c -> xy = getGlobalCoord s c) (fun g s c -> {c with Value=Empty}) |> Solver.pencil
+            let result = grid |> updateCells (fun _ s c -> xy = getGlobalCoord s c && match c.Value with | PermaMark _ -> false | _ -> true) (fun g s c -> {c with Value=Empty})
             update result options
         | _, _ -> ()
         )
+    selectGames.onchange <- (fun e -> 
+        console.log("test")
 
+        let _, result = SampleGrid.sampleGrids.[selectGames.selectedIndex]
+        update result options)
 update grid options

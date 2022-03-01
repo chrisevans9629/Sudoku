@@ -27,7 +27,7 @@ let private addMark (x,y,v) grid =
         if sect.Column = sectX && sect.Row = sectY then
             yield {sect with Cells = [for cell in sect.Cells do 
                                         if cell.Column = lx && cell.Row = ly then 
-                                            yield {cell with Value=Mark(v)}
+                                            yield {cell with Value=PermaMark(v)}
                                         else yield cell]}
         else yield sect
     ]

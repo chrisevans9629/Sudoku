@@ -35,3 +35,8 @@ let uniqueCandidate = create [
     (0,6,5)
     (5,8,4)
 ]
+
+let sampleGrids = [
+    ("Sam's Grid", samGrid)
+    ("Unique Candidate", uniqueCandidate)
+]

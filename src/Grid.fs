@@ -2,6 +2,7 @@ module Grid
 
 type CellValue = 
     | PencilMark of int list 
+    | PermaMark of int
     | Mark of int
     | Empty
 type CellModel = {Column:int; Row:int;Value:CellValue }

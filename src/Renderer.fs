@@ -94,12 +94,13 @@ let drawCell (cell:CellModel) ((x,y):float * float) (options:RenderOptions) sect
     | _,_ -> ()
 
     match cell.Value with
-    | Mark v -> v.ToString() |> options.text (getFontSize MarkFont options) middle black
+    | Mark v -> v.ToString() |> options.text (getFontSize MarkFont options) middle red
     | PencilMark values -> 
         values |> List.sortDescending 
         |> List.map (fun v -> v.ToString()) 
         |> List.reduce (fun f s -> s + f) 
         |> options.text (getFontSize PencilFont options) middle black
+    | PermaMark v -> v.ToString() |> options.text (getFontSize MarkFont options) middle black
     | Empty -> ()
 
 let drawSect (sect:GridCell) options =

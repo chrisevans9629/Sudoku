@@ -5,31 +5,22 @@ open Browser.Dom
 
 let checkFor = [1..9]
 
-let private getRow grid sect cell =
+let private getRow grid sect cell map =
     let _,y = getGlobalCoord sect cell
     [for s in grid do
      for c in s.Cells do
         let _,y2 = getGlobalCoord s c
-        match c.Value with
-        | Mark v when y2 = y -> yield v
-        | _ -> ()
-        ]
+        if y2 = y then yield map c]
 
-let private getColumn grid sect cell =
+let private getColumn grid sect cell map =
     let x,_ = getGlobalCoord sect cell
     [for s in grid do
      for c in s.Cells do
         let x2,_ = getGlobalCoord s c
-        match c.Value with
-        | Mark v when x = x2 -> yield v
-        | _ -> ()
-        ]
+        if x = x2 then yield map c]
 
-let private getSquare sect =
-    [for cell in sect.Cells do
-        match cell.Value with
-        | Mark v -> yield v
-        | _ -> ()]
+let private getSquare sect map =
+    [for cell in sect.Cells -> map cell]
 
 let updateCells filter action grid = 
     [for sect in grid do
@@ -39,17 +30,37 @@ let updateCells filter action grid =
                                     else yield cell]}]
 
 let private pencilCell grid sect cell =
-    let unavailable = getColumn grid sect cell
-                    |> List.append (getRow grid sect cell)
-                    |> List.append (getSquare sect)
+    let map cell =
+        match cell.Value with
+        | Mark v -> v
+        | PermaMark v -> v
+        | _ -> -1
+    
+    let unavailable = getColumn grid sect cell map
+                    |> List.append (getRow grid sect cell map)
+                    |> List.append (getSquare sect map)
+                    |> List.filter (fun r -> r > 0)
     let result = checkFor |> List.filter (fun i -> unavailable |> List.contains i |> not)
     {cell with Value = PencilMark result}
 
 let pencil grid =
     grid |> updateCells (fun g s c -> match c.Value with | Empty -> true | PencilMark _ -> true | _ -> false) pencilCell
  
+
+
+let eliminate grid =
+    grid |> updateCells (fun _ _ c -> match c.Value with | PencilMark _ -> true | _ -> false) 
+
 let convertPencilToMarks grid =
-    grid |> updateCells (fun g s c -> true) (fun g s c -> match c.Value with | PencilMark v when v.Length = 1 -> {c with Value = Mark(v.Head)} | _ -> c)
+    console.log("stuff")
+
+    let convert g s c =
+        match c.Value with 
+        | PencilMark v when v.Length = 1 -> 
+            {c with Value = Mark(v.Head)} 
+        | _ -> c
+
+    grid |> updateCells (fun g s c -> true) convert
    
 
 let private bestSection grid =
