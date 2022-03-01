@@ -7,6 +7,10 @@ let rgb r g b:string = sprintf "rgb(%i,%i,%i)" r g b
 let white = rgb 255 255 255
 let black = rgb 0 0 0
 let red = rgb 100 0 0
+let blue = rgb 0 0 255
+let green = rgb 0 255 0
+
+
 type Font =
     | DebugFont
     | MarkFont
@@ -23,7 +27,11 @@ type RenderOptions = {
     clear:unit -> unit
     fontRatio:float
     strokeRatio:float
+    SelectedCell: (int * int) option
+    HighlightedCell: (int * int) option
+    stroke:float -> string -> (float * float * float * float) -> unit
 }
+
 
 let getFontSize font options =
     //let ratio = 0.05
@@ -57,10 +65,22 @@ let drawCell (cell:CellModel) ((x,y):float * float) (options:RenderOptions) sect
     let top = (cX+options.CellSize/2.,cY + 20.)
     let bottom = (cX + options.CellSize/2., cY+options.CellSize - 20.)
     
+    let gX,gY = getGlobalCoord sect cell 
+
+    
+
+    match options.HighlightedCell with
+    | Some s when s = (gX,gY) -> (cX,cY, options.CellSize, options.CellSize) |> options.stroke 5. green
+    | _ -> ()
+
+    match options.SelectedCell with
+    | Some s when s = (gX,gY) -> (cX,cY, options.CellSize, options.CellSize) |> options.stroke 5. blue
+    | _ -> ()
+
+
     match options.Debug, cell.Value with
     | _, Empty -> ()
     | true,_->
-        let gX,gY = getGlobalCoord sect cell 
 
         let debugFont = getFontSize DebugFont options
 

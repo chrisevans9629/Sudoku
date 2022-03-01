@@ -24,9 +24,11 @@ let filled (color: string) rect =
 
 let stroke lineWidth (color: string) rect =
     let ctx = context
+    ctx.beginPath()
     ctx.strokeStyle <- !^ color
     ctx.lineWidth <- lineWidth
     ctx.strokeRect rect
+    ctx.closePath()
 
 let line lineWidth (color: string) from lTo =
     let ctx = context
@@ -82,6 +84,23 @@ let getWindowDimensions () =
 let setWindowSize (w,h) =
     context.canvas.width <- w
     context.canvas.height <- h
+
+let getMousePos (e:MouseEvent) =
+    let rect = canvas.getBoundingClientRect()
+    let x = e.clientX - rect.left
+    let y = e.clientY - rect.top
+    x,y
+
+let mouseMove action =
+    canvas.onmousemove <- (fun e -> 
+        let pos = getMousePos e
+        action pos)
+
+let keyDown action =
+    canvas.onkeydown <- (fun e -> action e.key)
+
+let mouseDown action =
+    canvas.onmousedown <- (fun e -> action (getMousePos e))
 
 /// Get the first <img /> element and set `src` (do
 /// nothing if it is the right one to keep animation)

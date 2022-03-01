@@ -3,7 +3,7 @@ open GridGrid
 open Grid
 open Browser.Dom
 
-let private checkFor = [1..9]
+let checkFor = [1..9]
 
 let private getRow grid sect cell =
     let _,y = getGlobalCoord sect cell
