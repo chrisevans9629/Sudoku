@@ -71,8 +71,9 @@ for name,_ in SampleGrid.sampleGrids do
 open Solver
 open GridGrid
 open Grid
-let rec update grid options =
-    render (grid |> Solver.pencil) options
+let rec update grid1 options =
+    let grid = grid1 |> Solver.pencil
+    render grid options
 
     btnGuess.onclick <- (fun e -> 
         let result = grid |> Solver.convertPencilToMarks |> Solver.pencil |> Solver.guess

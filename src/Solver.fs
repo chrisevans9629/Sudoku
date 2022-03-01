@@ -52,9 +52,9 @@ let eliminate grid =
     grid |> updateCells (fun _ _ c -> match c.Value with | PencilMark _ -> true | _ -> false) 
 
 let convertPencilToMarks grid =
-    console.log("stuff")
 
     let convert g s c =
+        
         match c.Value with 
         | PencilMark v when v.Length = 1 -> 
             {c with Value = Mark(v.Head)} 
