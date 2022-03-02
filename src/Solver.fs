@@ -43,13 +43,37 @@ let private pencilCell grid sect cell =
     let result = checkFor |> List.filter (fun i -> unavailable |> List.contains i |> not)
     {cell with Value = PencilMark result}
 
+let eliminate grid =
+    let getPencilMarks cell =
+        match cell.Value with
+        | PencilMark v -> v
+        | _ -> []
+
+    let updateCell get g s c  =
+        let row = get g s c getPencilMarks
+        
+        let marks = getPencilMarks c |> List.filter (fun r -> row |> List.filter (fun s -> s |> List.contains r) |> List.length = 1)
+        if marks.Length = 1 then
+            {c with Value=PencilMark([marks.Head])}
+        else if marks.Length > 1 then
+            failwithf "cell %O failed due to having marks %O" c marks
+        else
+            c
+
+    let updateCell g s c =
+        updateCell (fun g s c m -> getSquare s m) g s c 
+        |> updateCell (fun g s c m -> getColumn g s c m) g s 
+        |> updateCell (fun g s c m -> getRow g s c m) g s
+    
+    grid |> updateCells (fun _ _ c -> match c.Value with | PencilMark _ -> true | _ -> false) updateCell
+
+
 let pencil grid =
-    grid |> updateCells (fun g s c -> match c.Value with | Empty -> true | PencilMark _ -> true | _ -> false) pencilCell
+    grid |> updateCells (fun g s c -> match c.Value with | Empty -> true | PencilMark _ -> true | _ -> false) pencilCell |> eliminate
  
 
 
-let eliminate grid =
-    grid |> updateCells (fun _ _ c -> match c.Value with | PencilMark _ -> true | _ -> false) 
+
 
 let convertPencilToMarks grid =
 
